@@ -35,3 +35,9 @@ Run a service and version scan against the target to identify open ports and run
 | `-V`       | Verbose output            |
 | `-oN nmap` | Save output to file `nmap`|
 
+Results:
+
+| port | State | Service           |
+|------|-------|-------------------|
+| 80   | open  | HTTP (web server) |
+
